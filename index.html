@@ -385,13 +385,15 @@ SADECE ham JSON döndür. Hiçbir şey ekleme, açıklama yapma, markdown kullan
 
 Kurallar: spots 3 adet (ilki öne çıkan), itinerary 5 durak, practical 4 madde. Tüm içerik Türkçe. Doğru ve gerçek bilgi.`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const GEMINI_KEY = 'AIzaSyCoKU31rouJl7vEuJI40NBoPZNaEp-bUe4';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1500,
-        messages:[{role:'user',content:prompt}]
+
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{maxOutputTokens:1500,temperature:0.7}
+
       })
     });
 
