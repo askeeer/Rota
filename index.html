@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Rota — AI Gezi Rehberi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#13100c;--paper:#faf7f2;--cream:#f0e9d8;
+  --accent:#b8561a;--accent2:#d4733a;--muted:#6e5c48;--border:#ddd3c0;
+  --navh:60px;--maxw:1200px;--pad:clamp(16px,4vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Outfit',sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* ═══ AD SYSTEM ═══
+   false → display:none, sıfır yükseklik, hiç yer kaplamaz
+   true  → display:flex, görünür
+   Reklam kodunu .ad-content içine yapıştır */
+.ad-zone{display:none;justify-content:center;align-items:center;width:100%;overflow:hidden}
+.ad-zone.on{display:flex}
+.ad-bar{background:var(--cream);border-bottom:1px solid var(--border);padding:10px var(--pad)}
+.ad-bar-b{border-top:1px solid var(--border);border-bottom:none}
+.ad-inline{padding:24px var(--pad)}
+
+/* SEARCH */
+#ss{min-height:100vh;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px var(--pad);position:relative;overflow:hidden}
+#ss::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 60%,rgba(184,86,26,.18) 0%,transparent 70%)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,7vw,5rem);letter-spacing:6px;color:var(--paper);position:relative;margin-bottom:6px;text-align:center}
+.logo span{color:var(--accent2)}
+.tagline{font-size:clamp(.78rem,1.4vw,.9rem);color:#7a6a58;letter-spacing:2px;text-transform:uppercase;margin-bottom:clamp(28px,5vw,52px);position:relative;text-align:center}
+.sbox{position:relative;width:100%;max-width:560px}
+.sbox input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(184,86,26,.4);color:var(--paper);font-family:'Outfit',sans-serif;font-size:clamp(1rem,2vw,1.2rem);padding:clamp(14px,2vw,18px) 140px clamp(14px,2vw,18px) clamp(14px,2vw,22px);outline:none;transition:border-color .2s,background .2s;-webkit-appearance:none;border-radius:0}
+.sbox input::placeholder{color:#4a3a2a}
+.sbox input:focus{border-color:var(--accent2);background:rgba(255,255,255,.09)}
+.sbox button{position:absolute;right:0;top:0;bottom:0;background:var(--accent);border:none;cursor:pointer;color:#fff;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:0 clamp(14px,2.5vw,26px);transition:background .2s;white-space:nowrap}
+.sbox button:hover{background:var(--accent2)}
+.sbox button:disabled{background:#3a2a1a;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;justify-content:center;position:relative}
+.chip{background:rgba(255,255,255,.05);border:1px solid rgba(184,86,26,.22);color:#8a7a68;font-size:.73rem;letter-spacing:1px;padding:6px 14px;cursor:pointer;transition:all .2s}
+.chip:hover{background:rgba(184,86,26,.15);color:var(--accent2);border-color:var(--accent2)}
+.err{background:rgba(184,86,26,.12);border:1px solid rgba(184,86,26,.3);color:var(--accent2);padding:16px 20px;font-size:.88rem;margin-top:20px;line-height:1.6;display:none;position:relative;max-width:560px;width:100%;text-align:center}
+
+/* LOADING */
+#ls{display:none;min-height:100vh;background:var(--ink);flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px}
+.lc{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,6vw,4rem);letter-spacing:6px;color:var(--paper);text-align:center}
+.lc span{color:var(--accent2)}
+.lbar{width:min(300px,80vw);height:2px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+.lbar::after{content:'';position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--accent2),transparent);animation:sw 1.2s ease-in-out infinite}
+@keyframes sw{to{left:140%}}
+.lmsg{font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:#4a3a2a;text-align:center}
+
+/* GUIDE */
+#gp{display:none}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:300;height:var(--navh);background:var(--ink);border-bottom:2px solid var(--accent);display:flex;align-items:center}
+.ni{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 var(--pad);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.2rem,2.5vw,1.8rem);letter-spacing:3px;color:var(--paper);white-space:nowrap;cursor:pointer}
+.brand span{color:var(--accent2)}
+.nl{display:flex;gap:2px;list-style:none}
+.nl a{display:block;padding:6px 12px;font-size:.7rem;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:#8a7a68;transition:color .2s;white-space:nowrap}
+.nl a:hover{color:var(--accent2)}
+.bbtn{background:none;border:1px solid rgba(184,86,26,.3);color:#8a7a68;font-family:'Outfit',sans-serif;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:6px 13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.bbtn:hover{border-color:var(--accent2);color:var(--accent2)}
+.ham{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px}
+.ham span{display:block;width:22px;height:2px;background:var(--paper);border-radius:2px;transition:all .3s}
+.mmenu{display:none;position:fixed;top:var(--navh);left:0;right:0;bottom:0;background:var(--ink);z-index:290;flex-direction:column;padding:26px var(--pad);gap:4px;overflow-y:auto}
+.mmenu.open{display:flex}
+.mmenu a{font-size:1.05rem;font-weight:500;color:#c5b49e;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07);transition:color .2s;cursor:pointer}
+.mmenu a:hover{color:var(--accent2)}
+
+/* HERO */
+.hero{background:var(--ink);position:relative;overflow:hidden;min-height:clamp(340px,50vw,540px);display:flex;align-items:center}
+.hbg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 72% 50%,rgba(184,86,26,.2) 0%,transparent 65%),repeating-linear-gradient(45deg,transparent,transparent 60px,rgba(255,255,255,.012) 60px,rgba(255,255,255,.012) 61px)}
+.hi{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;padding:clamp(36px,5vw,70px) var(--pad);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,56px);align-items:center}
+.ey{font-size:.68rem;letter-spacing:4px;text-transform:uppercase;color:var(--accent2);margin-bottom:12px;font-weight:500}
+.ht{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,6vw,4.8rem);font-weight:700;color:var(--paper);line-height:1.05;margin-bottom:14px}
+.ht em{font-style:italic;color:var(--accent2)}
+.hs{color:#7a6a58;font-size:clamp(.88rem,1.4vw,1rem);max-width:440px;margin-bottom:24px;line-height:1.7}
+.hbtn{display:inline-block;background:var(--accent);color:#fff;padding:clamp(10px,1.5vw,14px) clamp(20px,3vw,34px);font-size:.76rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:background .2s,transform .15s}
+.hbtn:hover{background:var(--accent2);transform:translateY(-2px)}
+.hstats{display:flex;flex-direction:column;gap:10px;align-items:flex-end;flex-shrink:0}
+.stat{background:rgba(255,255,255,.04);border:1px solid rgba(184,86,26,.25);padding:clamp(10px,1.5vw,18px) clamp(12px,2vw,24px);text-align:right;min-width:130px}
+.stn{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--accent2);line-height:1}
+.stl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+
+/* BODY */
+.pb{display:grid;grid-template-columns:1fr 300px;gap:clamp(20px,3vw,44px);max-width:var(--maxw);margin:0 auto;padding:clamp(28px,4vw,52px) var(--pad);align-items:start}
+.sc{position:sticky;top:calc(var(--navh)+14px)}
+.slbl{font-size:.67rem;letter-spacing:4px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px}
+.stitle{font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;color:var(--ink);margin-bottom:22px;line-height:1.15}
+
+/* CARDS */
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(10px,2vw,18px);margin-bottom:32px}
+.cg .card:first-child{grid-column:1/-1}
+.card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
+.card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(20,16,12,.11)}
+.ct{height:clamp(130px,15vw,200px);background:var(--cream);position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(2.5rem,5vw,3.5rem);overflow:hidden}
+.card:first-child .ct{height:clamp(170px,20vw,250px)}
+.ct::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,16,12,.48) 0%,transparent 55%)}
+.ctag{position:absolute;top:10px;left:10px;z-index:1;background:var(--accent);color:#fff;font-size:.57rem;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;font-weight:600}
+.cb{padding:clamp(12px,2vw,18px)}
+.ctitle{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,1.8vw,1.28rem);font-weight:700;margin-bottom:6px}
+.card:first-child .ctitle{font-size:clamp(1.2rem,2.2vw,1.55rem)}
+.cdesc{font-size:clamp(.8rem,1.1vw,.88rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.cmeta{display:flex;flex-wrap:wrap;gap:8px;font-size:.68rem;color:var(--muted)}
+
+/* TIMELINE */
+.its{background:var(--ink);padding:clamp(36px,5vw,66px) var(--pad)}
+.its .slbl{color:var(--accent2)}
+.its .stitle{color:var(--paper)}
+.iw{max-width:var(--maxw);margin:0 auto}
+.tl{position:relative;padding-left:28px;border-left:2px solid var(--accent)}
+.tli{position:relative;padding:0 0 clamp(18px,3vw,28px) clamp(14px,2vw,24px)}
+.tld{position:absolute;left:calc(-28px - 6px);top:5px;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid var(--ink)}
+.tlt{font-size:.66rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);margin-bottom:3px}
+.tlp{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,1.8vw,1.25rem);font-weight:700;color:var(--paper);margin-bottom:4px}
+.tldesc{font-size:clamp(.8rem,1.1vw,.88rem);color:#7a6a58;line-height:1.6;max-width:560px}
+
+/* SIDEBAR */
+.w{background:#fff;border:1px solid var(--border);padding:clamp(14px,2vw,20px);margin-bottom:16px}
+.wt{font-family:'Cormorant Garamond',serif;font-size:1.08rem;font-weight:700;padding-bottom:9px;margin-bottom:11px;border-bottom:2px solid var(--accent)}
+.lp{list-style:none}
+.lp li{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.84rem;cursor:pointer;transition:color .15s}
+.lp li:last-child{border-bottom:none}
+.lp li:hover{color:var(--accent)}
+.ln{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--accent);min-width:22px}
+
+/* FOOTER */
+.ft{background:#0e0a06;padding:clamp(28px,4vw,54px) var(--pad) clamp(14px,2vw,22px);color:var(--muted)}
+.fg{display:grid;grid-template-columns:1.8fr 1fr 1fr;gap:clamp(20px,4vw,54px);max-width:var(--maxw);margin:0 auto;padding-bottom:clamp(16px,3vw,32px);border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:clamp(12px,2vw,18px)}
+.fb{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:3px;color:var(--paper);margin-bottom:9px;display:block}
+.fb span{color:var(--accent2)}
+.fd{font-size:.82rem;line-height:1.7;max-width:240px}
+.fh{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);margin-bottom:9px}
+.fl{list-style:none}
+.fl li{font-size:.82rem;padding:4px 0;cursor:pointer;transition:color .15s}
+.fl li:hover{color:var(--paper)}
+.fc{max-width:var(--maxw);margin:0 auto;font-size:.68rem;text-align:center;opacity:.33}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hi{grid-template-columns:1fr}
+  .hstats{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start}
+  .stat{min-width:110px;text-align:left}
+  .pb{grid-template-columns:1fr}
+  .sc{position:static}
+  .fg{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .nl{display:none}.ham{display:flex}
+  .hstats{display:none}
+  .cg{grid-template-columns:1fr}
+  .cg .card:first-child{grid-column:auto}
+  .fg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ARAMA EKRANI -->
+<div id="ss">
+  <div class="logo">ROTA<span>.</span></div>
+  <p class="tagline">Yapay Zeka Destekli Gezi Rehberi</p>
+  <div class="sbox">
+    <input type="text" id="ci" placeholder="Şehir gir... (Gaziantep, Paris, Tokyo...)" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="gb" onclick="gen()">Rehber Oluştur</button>
+  </div>
+  <div class="chips">
+    <span class="chip" onclick="q('Gaziantep')">Gaziantep</span>
+    <span class="chip" onclick="q('İstanbul')">İstanbul</span>
+    <span class="chip" onclick="q('Paris')">Paris</span>
+    <span class="chip" onclick="q('Tokyo')">Tokyo</span>
+    <span class="chip" onclick="q('Roma')">Roma</span>
+    <span class="chip" onclick="q('Barcelona')">Barcelona</span>
+    <span class="chip" onclick="q('Kapadokya')">Kapadokya</span>
+  </div>
+  <div class="err" id="err"></div>
+</div>
+
+<!-- YÜKLEME -->
+<div id="ls">
+  <div class="lc" id="lc">ROTA<span>.</span></div>
+  <div class="lbar"></div>
+  <div class="lmsg" id="lm">Hazırlanıyor...</div>
+</div>
+
+<!-- REHBERİ SAYFASI -->
+<div id="gp">
+
+  <nav class="nav">
+    <div class="ni">
+      <span class="brand" id="nbrand" onclick="home()">ROTA<span>.</span></span>
+      <ul class="nl">
+        <li><a href="#rotalar">Rotalar</a></li>
+        <li><a href="#program">Program</a></li>
+        <li><a href="#pratik">Pratik</a></li>
+      </ul>
+      <button class="bbtn" onclick="home()">← Yeni Şehir</button>
+      <button class="ham" id="ham" aria-label="Menü"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="mmenu" id="mm">
+    <a href="#rotalar" onclick="cm()">Rotalar</a>
+    <a href="#program" onclick="cm()">Program</a>
+    <a href="#pratik"  onclick="cm()">Pratik Bilgi</a>
+    <a onclick="home();cm()">← Yeni Şehir</a>
+  </div>
+
+  <!-- ═══ REKLAM #1 — ÜST (Leaderboard)
+       ADS.top = true yap → görünür
+       İçine AdSense <ins> kodunu yapıştır ═══ -->
+  <div class="ad-zone ad-bar" id="adt">
+    <div id="adt-c"><!-- AdSense kodu buraya --></div>
+  </div>
+
+  <section class="hero">
+    <div class="hbg"></div>
+    <div class="hi">
+      <div>
+        <p class="ey" id="hey"></p>
+        <h1 class="ht" id="htitle"></h1>
+        <p class="hs" id="hsub"></p>
+        <a href="#rotalar" class="hbtn">Keşfetmeye Başla</a>
+      </div>
+      <div class="hstats" id="hst"></div>
+    </div>
+  </section>
+
+  <div class="pb">
+    <main>
+      <p class="slbl">Öne Çıkan Rotalar</p>
+      <h2 class="stitle" id="sptitle"></h2>
+      <div class="cg" id="cg"></div>
+
+      <!-- ═══ REKLAM #2 — ORTASI (Rectangle)
+           ADS.mid = true yap → görünür ═══ -->
+      <div class="ad-zone ad-inline" id="adm">
+        <div id="adm-c"><!-- AdSense kodu buraya --></div>
+      </div>
+    </main>
+
+    <aside class="sc" id="pratik">
+      <!-- ═══ REKLAM #3 — SIDEBAR
+           ADS.side = true yap → görünür ═══ -->
+      <div class="ad-zone" id="ads" style="margin-bottom:16px">
+        <div id="ads-c"><!-- AdSense kodu buraya --></div>
+      </div>
+
+      <div class="w">
+        <h3 class="wt">Popüler Rotalar</h3>
+        <ul class="lp" id="popl"></ul>
+      </div>
+      <div class="w">
+        <h3 class="wt">Pratik Bilgi</h3>
+        <ul class="lp" id="pracl"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <section class="its" id="program">
+    <div class="iw">
+      <p class="slbl">Hazır Rota</p>
+      <h2 class="stitle" id="rotalar">Tam Günlük Gezi Planı</h2>
+      <br>
+      <div class="tl" id="tl"></div>
+    </div>
+  </section>
+
+  <!-- ═══ REKLAM #4 — ALT (Leaderboard)
+       ADS.bot = true yap → görünür ═══ -->
+  <div class="ad-zone ad-bar ad-bar-b" id="adb">
+    <div id="adb-c"><!-- AdSense kodu buraya --></div>
+  </div>
+
+  <footer class="ft">
+    <div class="fg">
+      <div><span class="fb" id="fbr">ROTA<span>.</span></span><p class="fd" id="fdesc"></p></div>
+      <div id="fc1"></div>
+      <div id="fc2"></div>
+    </div>
+    <p class="fc" id="fcp"></p>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+  REKLAM YAPLANDIRMASI
+  ─ true  → alan açılır (AdSense kodunu ilgili div'e yaz)
+  ─ false → alan tamamen gizli, sıfır yer kaplar
+═══════════════════════════════════════════════════ -->
+<script>
+const ADS = {
+  top:  false,  // Üst bar (728x90)
+  mid:  false,  // İçerik ortası (300x250)
+  side: false,  // Sidebar
+  bot:  false,  // Alt bar (728x90)
+};
+
+function applyAds() {
+  if(ADS.top)  document.getElementById('adt').classList.add('on');
+  if(ADS.mid)  document.getElementById('adm').classList.add('on');
+  if(ADS.side) document.getElementById('ads').classList.add('on');
+  if(ADS.bot)  document.getElementById('adb').classList.add('on');
+}
+applyAds();
+
+// Hamburger
+document.getElementById('ham').addEventListener('click', () =>
+  document.getElementById('mm').classList.toggle('open'));
+function cm(){ document.getElementById('mm').classList.remove('open') }
+
+// Giriş — Enter
+document.getElementById('ci').addEventListener('keydown', e => {
+  if(e.key === 'Enter') gen();
+});
+
+function q(c){ document.getElementById('ci').value = c; gen(); }
+
+function home(){
+  document.getElementById('gp').style.display='none';
+  document.getElementById('ss').style.display='flex';
+  document.getElementById('ci').value='';
+  window.scrollTo(0,0);
+}
+
+// Yükleme mesajları
+const MSGS = ['Şehir araştırılıyor...','Gezilecek yerler seçiliyor...','Gezi programı hazırlanıyor...','Rehber tamamlanıyor...'];
+
+async function gen() {
+  const city = document.getElementById('ci').value.trim();
+  if(!city) return;
+
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  document.getElementById('gb').disabled = true;
+
+  document.getElementById('ss').style.display = 'none';
+  document.getElementById('gp').style.display = 'none';
+  const ls = document.getElementById('ls');
+  ls.style.display = 'flex';
+  document.getElementById('lc').innerHTML = city.toUpperCase() + '<span>.</span>';
+
+  let mi = 0;
+  const lmEl = document.getElementById('lm');
+  const timer = setInterval(() => {
+    lmEl.textContent = MSGS[Math.min(mi++, MSGS.length-1)];
+  }, 900);
+
+  try {
+    const prompt = `Sen bir profesyonel seyahat yazarısın. "${city}" şehri için kapsamlı bir gezi rehberi JSON üret.
+
+SADECE ham JSON döndür. Hiçbir şey ekleme, açıklama yapma, markdown kullanma.
+
+{
+  "slogan": "şehrin 4-6 kelimelik sloganı",
+  "desc": "şehri tanıtan 2 cümle",
+  "stat1_n": "etkileyici rakam (örn: 2000+)",
+  "stat1_l": "etiket (örn: Yıllık Tarih)",
+  "stat2_n": "rakam",
+  "stat2_l": "etiket",
+  "stat3_n": "rakam veya sıra",
+  "stat3_l": "etiket",
+  "spots": [
+    {"tag":"kategori","icon":"emoji","title":"yer adı","desc":"2 cümle","time":"süre","rating":"puan"}
+  ],
+  "itinerary": [
+    {"time":"08:30","place":"yer","desc":"kısa not"}
+  ],
+  "popular": ["yer1","yer2","yer3","yer4","yer5"],
+  "practical": [
+    {"icon":"emoji","text":"bilgi"}
+  ],
+  "f1h": "Keşfet",
+  "f1i": ["link1","link2","link3","link4"],
+  "f2h": "Pratik",
+  "f2i": ["link1","link2","link3","link4"]
+}
+
+Kurallar: spots 3 adet (ilki öne çıkan), itinerary 5 durak, practical 4 madde. Tüm içerik Türkçe. Doğru ve gerçek bilgi.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1500,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    if(!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const raw = data.content.map(b=>b.text||'').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const d = JSON.parse(clean);
+
+    clearInterval(timer);
+    paint(city, d);
+
+  } catch(e) {
+    clearInterval(timer);
+    ls.style.display='none';
+    document.getElementById('ss').style.display='flex';
+    err.textContent = 'Rehber oluşturulamadı, lütfen tekrar deneyin. (' + e.message + ')';
+    err.style.display='block';
+    document.getElementById('gb').disabled=false;
+  }
+}
+
+function paint(city, d) {
+  document.title = city + ' Gezi Rehberi — Rota';
+
+  // Brand
+  const short = city.length > 9 ? city.slice(0,7) : city;
+  document.getElementById('nbrand').innerHTML = short.toUpperCase() + '<span>.</span>';
+
+  // Hero
+  document.getElementById('hey').textContent = d.slogan || city;
+  document.getElementById('htitle').innerHTML = '<em>' + city + '</em> Gezi Rehberi';
+  document.getElementById('hsub').textContent = d.desc || '';
+
+  const hst = document.getElementById('hst');
+  hst.innerHTML='';
+  [[d.stat1_n,d.stat1_l],[d.stat2_n,d.stat2_l],[d.stat3_n,d.stat3_l]]
+    .filter(([n])=>n)
+    .forEach(([n,l])=>{
+      hst.innerHTML+=`<div class="stat"><div class="stn">${n}</div><div class="stl">${l}</div></div>`;
+    });
+
+  // Cards
+  document.getElementById('sptitle').textContent = city + ' — Mutlaka Görülmesi Gerekenler';
+  const cg = document.getElementById('cg');
+  cg.innerHTML='';
+  (d.spots||[]).forEach(s=>{
+    cg.innerHTML+=`
+    <article class="card">
+      <div class="ct"><span>${s.icon||'📍'}</span><span class="ctag">${s.tag||''}</span></div>
+      <div class="cb">
+        <h3 class="ctitle">${s.title}</h3>
+        <p class="cdesc">${s.desc}</p>
+        <div class="cmeta"><span>⏱ ${s.time||''}</span>${s.rating?`<span>⭐ ${s.rating}</span>`:''}</div>
+      </div>
+    </article>`;
+  });
+
+  // Timeline
+  const tl = document.getElementById('tl');
+  tl.innerHTML='';
+  (d.itinerary||[]).forEach(it=>{
+    tl.innerHTML+=`
+    <div class="tli">
+      <div class="tld"></div>
+      <div class="tlt">${it.time}</div>
+      <div class="tlp">${it.place}</div>
+      <div class="tldesc">${it.desc}</div>
+    </div>`;
+  });
+
+  // Popular
+  const pop = document.getElementById('popl');
+  pop.innerHTML='';
+  (d.popular||[]).forEach((p,i)=>{
+    pop.innerHTML+=`<li><span class="ln">${String(i+1).padStart(2,'0')}</span>${p}</li>`;
+  });
+
+  // Practical
+  const prac = document.getElementById('pracl');
+  prac.innerHTML='';
+  (d.practical||[]).forEach(p=>{
+    prac.innerHTML+=`<li><span>${p.icon}</span>${p.text}</li>`;
+  });
+
+  // Footer
+  document.getElementById('fbr').innerHTML = city.toUpperCase() + '<span>.</span>';
+  document.getElementById('fdesc').textContent = city + ' için kapsamlı bağımsız gezi rehberi.';
+  if(d.f1i){
+    document.getElementById('fc1').innerHTML=`<p class="fh">${d.f1h}</p><ul class="fl">${d.f1i.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  }
+  if(d.f2i){
+    document.getElementById('fc2').innerHTML=`<p class="fh">${d.f2h}</p><ul class="fl">${d.f2i.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  }
+  document.getElementById('fcp').textContent = '© ' + new Date().getFullYear() + ' Rota — ' + city + ' Gezi Rehberi';
+
+  document.getElementById('ls').style.display='none';
+  document.getElementById('gp').style.display='block';
+  document.getElementById('gb').disabled=false;
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
